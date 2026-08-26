@@ -1,5 +1,7 @@
 FROM debian:13-slim AS factorio-download
 
+ARG FACTORIO_VERSION=stable
+
 RUN apt-get update && apt-get install -y curl xz-utils
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
@@ -14,7 +16,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     rm -rf /var/cache/apt/archives/partial/*
 
 RUN mkdir -p opt && \
-    curl -L "https://factorio.com/get-download/stable/headless/linux64" | \
+    curl -L "https://factorio.com/get-download/${FACTORIO_VERSION}/headless/linux64" | \
     tar --extract --file - -J --directory opt && \
     mkdir opt/factorio/configs opt/factorio/saves opt/factorio/mods
 
