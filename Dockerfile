@@ -17,10 +17,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 RUN mkdir -p opt && \
     curl -L "https://factorio.com/get-download/${FACTORIO_VERSION}/headless/linux64" | \
-    tar --extract --file - -J --directory opt && \
-    mkdir opt/factorio/configs opt/factorio/saves opt/factorio/mods
+    tar --extract --file - -J --directory opt
 
-RUN sed --in-place 's|__PATH__executable__/../../config|opt/factorio/configs|' opt/factorio/config-path.cfg
+RUN mkdir opt/factorio/server-data opt/factorio/server-data/saves opt/factorio/configs opt/factorio/mods
+
+RUN sed --in-place 's|__PATH__executable__/../../config|/opt/factorio/configs|' opt/factorio/config-path.cfg
 
 
 FROM gcc:trixie AS starter-build
@@ -28,12 +29,14 @@ FROM gcc:trixie AS starter-build
 COPY starter /starter/src
 WORKDIR /starter
 
-RUN cc src/*.c src/utils/*.c -o start
+RUN cc src/*.c src/utils/*.c src/configuration/*.c -o start
 
 
 FROM gcr.io/distroless/cc-debian13
 
 COPY --from=factorio-download opt /opt/
+
+COPY --from=ghcr.io/jqlang/jq:1.8.2 /jq /opt
 
 COPY --from=starter-build /starter/start /opt/factorio
 

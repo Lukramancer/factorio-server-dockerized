@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#include "default_paths.h"
+#include "paths.h"
 #include "arguments.h"
 #include "options.h"
 
