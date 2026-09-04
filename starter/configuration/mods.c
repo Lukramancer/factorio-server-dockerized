@@ -3,65 +3,19 @@
 
 #include "jq.h"
 #include "../factorio.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-
-#ifndef KNOWN_FACTORIO_DLCS
-    #define KNOWN_FACTORIO_DLCS "space-age"
-#endif
-
-const char* const factorio_dlcs[] = {KNOWN_FACTORIO_DLCS};
-const size_t factorio_dlcs_amount = sizeof(factorio_dlcs) / sizeof(factorio_dlcs[0]);
-
-
-#ifndef KNOWN_FACTORIO_FEATURES
-    #define KNOWN_FACTORIO_FEATURES "elevated-rails", "quality"
-#endif
-
-const char* const factorio_features[] = {KNOWN_FACTORIO_FEATURES};
-const size_t factorio_features_amount = sizeof(factorio_features) / sizeof(factorio_features[0]);
-
-
-const char disable_mods_from_env_jq_expression[] = {
-#embed "disable-mods-from-env.jq"
+const char update_mods_list_from_env_jq_expression[] = {
+#embed "update-mods-list-from-env.jq"
 , 0
 };
 
-
-size_t count_json_string_length(const char* const elements[], size_t elements_amount) {
-    // Empty list
-    if (elements_amount == 0) return 2;
-    
-    size_t json_string_length = 0;
-    for (size_t element_index = 0; element_index < elements_amount; ++element_index) {
-        json_string_length += strlen(elements[element_index]);
-    }
-    // brackets + quotes + commas
-    json_string_length += 2 + (elements_amount * 2) + (elements_amount - 1) * 1; 
-
-    return json_string_length;
-}
-
-void create_json_list_string(
-    const char* const elements[],
-    size_t elements_amount,
-    char* destination
-) {
-    char* current_position = destination;
-    
-    *(current_position++) = '[';
-
-    for (size_t element_index = 0; (element_index + 1) < elements_amount; ++element_index) {
-        current_position += sprintf(current_position, "\"%s\",", elements[element_index]);
-    }
-
-    if (elements_amount >= 1) sprintf(current_position, "\"%s\"]", elements[elements_amount - 1]);
-    else sprintf(current_position, "]");
-}
+const char dlcs_configuration_json[] = {
+#embed "dlcs.json"
+, 0
+};
 
 
 int produce_mod_list_from_env(
@@ -73,28 +27,12 @@ int produce_mod_list_from_env(
         return -1; // Could not fork process
     }
     else if (process_id == 0) {
-        char* factorio_features_json_string = malloc((count_json_string_length(factorio_features, factorio_features_amount) + 1) * sizeof(char));
-        if (factorio_features_json_string == NULL) {
-            exit(-1); // Could not allocate memory
-        }
-        create_json_list_string(factorio_features, factorio_features_amount, factorio_features_json_string);
-    
-        char* factorio_dlcs_json_string = malloc((count_json_string_length(factorio_dlcs, factorio_dlcs_amount) + 1) * sizeof(char));
-        if (factorio_features_json_string == NULL) {
-            exit(-1); // Could not allocate memory
-        }
-        create_json_list_string(factorio_dlcs, factorio_dlcs_amount, factorio_dlcs_json_string);
-        
         execl(JQ_BINARY_PATH,
             "jq",
-            "--argjson", "known_dlcs", factorio_dlcs_json_string,
-            "--argjson", "features", factorio_features_json_string,
-            disable_mods_from_env_jq_expression,
+            "--argjson", "dlcs", dlcs_configuration_json,
+            update_mods_list_from_env_jq_expression,
             base_mod_list_file_path
         );
-    
-        free(factorio_features_json_string);
-        free(factorio_dlcs_json_string);
     }
 
     return 0;
