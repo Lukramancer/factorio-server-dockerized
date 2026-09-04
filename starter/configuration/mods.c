@@ -3,6 +3,7 @@
 
 #include "jq.h"
 #include "../factorio.h"
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -27,15 +28,32 @@ int produce_mod_list_from_env(
         return -1; // Could not fork process
     }
     else if (process_id == 0) {
-        execl(JQ_BINARY_PATH,
+        int destination_file_descriptor = open(destination_file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (destination_file_descriptor < 0) {
+            exit(-1); // Could not open destination file
+        }
+        
+        int dup_return_code = dup2(destination_file_descriptor, STDOUT_FILENO);
+        if (dup_return_code < 0) {
+            exit(-1); // Could not duplicate fd
+        }
+        
+        int exec_return_code = execl(JQ_BINARY_PATH,
             "jq",
             "--argjson", "dlcs", dlcs_configuration_json,
             update_mods_list_from_env_jq_expression,
-            base_mod_list_file_path
+            base_mod_list_file_path,
+            NULL
         );
+        
+        if (exec_return_code == -1) exit(-1); // Could not exec jq
+        else exit(0);
+        return 0;
     }
 
-    return 0;
+    int status;
+    waitpid(process_id, &status, 0);
+    return status;
 }
 
 
