@@ -15,7 +15,7 @@ int produce_server_settings_from_env(
 
 int produce_mod_list_from_env(
     const char* base_mod_list_file_path,
-    const char* destination_file_path
+    int destination_file_descriptor
 );
 
 int generate_mod_list_file(

@@ -84,12 +84,13 @@ int check_and_prepare_mod_list(const char* mods_directory_path) {
     }
     
     char mod_list_tmp_file_path[PATH_MAX];
-    sprintf(mod_list_tmp_file_path, "%s/mod-list.tmp.json.XXXXXX", mods_directory_path);
-    if (mktemp(mod_list_tmp_file_path)[0] == '\0') {
-        return -3; // Could not make temp file path
+    sprintf(mod_list_tmp_file_path, "%s/mod-list.tmp-XXXXXX.json", mods_directory_path);
+    int mod_list_tmp_file_path_descriptor = mkstemps(mod_list_tmp_file_path, 5);
+    if (mod_list_tmp_file_path_descriptor == -1) {
+        return -3; // Could not make or open temp file path, check errno
     }
 
-    int mod_list_ineference_code = produce_mod_list_from_env(mod_list_file_path, mod_list_tmp_file_path);
+    int mod_list_ineference_code = produce_mod_list_from_env(mod_list_file_path, mod_list_tmp_file_path_descriptor);
     if (mod_list_ineference_code != 0) {
         return -4; // Could not infer temporary mod-list.json
     }
