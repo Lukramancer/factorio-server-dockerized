@@ -19,6 +19,5 @@ int produce_mod_list_from_env(
 );
 
 int generate_mod_list_file(
-    const char* mods_directory_path,
-    const struct StartOptions *start_options_ptr
+    const char* mods_directory_path
 );

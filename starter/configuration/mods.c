@@ -59,8 +59,7 @@ int produce_mod_list_from_env(
 
 // Hacky way to generate mod-list.json via Factorio server executable and invalid scenario name
 int generate_mod_list_file(
-    const char* mods_directory_path,
-    const struct StartOptions *start_options_ptr
+    const char* mods_directory_path
 ) {
     struct SaveCreationOptions save_creation_options;
 
@@ -69,13 +68,25 @@ int generate_mod_list_file(
     save_creation_options.map_generation_settings_file_path = FACTORIO_MAP_GENERATION_EXAMPLE_SETTINGS_FILE_PATH;
     save_creation_options.preset = NULL;
     save_creation_options.map_generation_seed = NULL;
+
+    struct StartOptions start_options = {
+        .map_settings_file_path = FACTORIO_MAP_EXAMPLE_SETTINGS_FILE_PATH,
+        .server_settings_file_path = FACTORIO_SERVER_EXAMPLE_SETTINGS_FILE_PATH,
+        .server_adminlist_file_path = NULL,
+        .server_banlist_file_path = NULL,
+        .server_id_file_path = NULL,
+        .server_whitelist_file_path = NULL,
+        .use_server_whitelist = false,
+        .use_authserver_bans = false,
+        .mods_directory_path = NULL,
+    };
     
     int process_id = fork();
     if (process_id < 0) {
         return -1; // Could not fork process
     }
     else if (process_id == 0) {
-        start_scenario("/", start_options_ptr, &save_creation_options);
+        start_scenario("/", &start_options, &save_creation_options);
         exit(0);
     }
 
