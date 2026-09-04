@@ -144,3 +144,32 @@ Most of the Factorio configuration can be made via configurations files:
 - `configs/map-gen-settings.json`
 
 Also enabled and disabled mods can be configured via file `mods/mod-list.json`.
+
+
+#### Space Age DLC
+
+To switch Space Age, you can modify `mod-list.json` file within `mods` directory or use `DISABLE_SPACE_AGE_DLC` environment variable.
+
+By default, the DLC is enabled, it can be also turned off by setting environment variable `DISABLE_SPACE_AGE_DLC` to `true`.
+
+Using `DISABLE_SPACE_AGE_DLC=true` turns components of the DLC (such as `quality`) off. These components/mods can be enabled individually with disabled Space Age DLC by using `ENABLE_SPACE_AGE_<COMPONENT_NAME>` environment variables. So, `ENABLE_SPACE_AGE_QUALITY=true` turns on quality feature.
+
+**Examples**:
+
+- All components of Space Age and the DLC are disabled, except `elevated-rails`:
+```bash
+DISABLE_SPACE_AGE_DLC=true
+ENABLE_SPACE_AGE_ELEVATED_RAILS=true
+```
+
+- All components of Space Age and the DLC are disabled:
+```bash
+DISABLE_SPACE_AGE_DLC=true
+```
+
+- Everything is enabled:
+```bash
+# Default behaviour and can be skipped
+DISABLE_SPACE_AGE_DLC=false
+```
+
