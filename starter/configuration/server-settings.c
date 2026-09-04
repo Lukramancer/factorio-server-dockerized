@@ -34,6 +34,8 @@ int produce_server_settings_from_env(
         if (dup_return_code < 0) {
             exit(-1); // Could not duplicate fd
         }
+
+        close(destination_file_descriptor);
         
         int exec_return_code = execl(
             JQ_BINARY_PATH,
