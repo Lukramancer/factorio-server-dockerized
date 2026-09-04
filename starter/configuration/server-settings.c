@@ -39,7 +39,8 @@ int produce_server_settings_from_env(
             JQ_BINARY_PATH,
             "jq",
             update_server_setting_from_env_jq_expression,
-            base_server_settings_file_path
+            base_server_settings_file_path,
+            NULL
         );
         
         if (exec_return_code == -1) exit(-1); // Could not exec jq
