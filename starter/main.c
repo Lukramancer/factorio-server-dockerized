@@ -1,5 +1,7 @@
 #include <errno.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -61,6 +63,42 @@ int check_and_prepare_save_creation_options(const struct SaveCreationOptions* sa
         return -1; // Could not access map generation settings file
     }
     
+    return 0;
+}
+
+int check_and_prepare_mod_list(const char* mods_directory_path) {
+    char mod_list_file_path[PATH_MAX];
+    sprintf(mod_list_file_path, "%s/mod-list.json", mods_directory_path);
+    
+    int mod_list_file_access_code = access(mod_list_file_path, F_OK);
+    if (mod_list_file_access_code == 0) {
+        return 0;
+    }
+    else if (errno != ENOENT) {
+        return -1; // Could not access mod list file
+    }
+    
+    int mod_list_generation_code = generate_mod_list_file(mods_directory_path);
+    if (mod_list_generation_code != 0) {
+        return -2; // Could not generate mod-list.json
+    }
+    
+    char mod_list_tmp_file_path[PATH_MAX];
+    sprintf(mod_list_tmp_file_path, "%s/mod-list.tmp.json.XXXXXX", mods_directory_path);
+    if (mktemp(mod_list_tmp_file_path)[0] == '\0') {
+        return -3; // Could not make temp file path
+    }
+
+    int mod_list_ineference_code = produce_mod_list_from_env(mod_list_file_path, mod_list_tmp_file_path);
+    if (mod_list_ineference_code != 0) {
+        return -4; // Could not infer temporary mod-list.json
+    }
+
+    int mod_list_substitution_code = rename(mod_list_tmp_file_path, mod_list_file_path);
+    if (mod_list_substitution_code != 0) {
+        return -5; // Could not move temporary mod-list.json into mod-list.json
+    }
+
     return 0;
 }
 
@@ -188,7 +226,11 @@ int main (int argc, const char *argv[]) {
     else if (config_file_access_code != 0) {
         return -1; // Could not access config file, check errno
     }
-    
+
+    int mod_list_preparation_code = check_and_prepare_mod_list(paths_configuration.mods_directory_path);
+    if (mod_list_preparation_code != 0) {
+        return -1; // Could not prepare mod list
+    }
     
     struct StartOptions start_options;
     init_start_options(&start_options, &paths_configuration);
