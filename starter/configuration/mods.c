@@ -3,6 +3,7 @@
 
 #include "jq.h"
 #include "../factorio.h"
+#include "../arguments.h"
 
 #define _GNU_SOURCE
 
@@ -73,7 +74,8 @@ int produce_mod_list_from_env(
 
 // Hacky way to generate mod-list.json via Factorio server executable and invalid scenario name
 int generate_mod_list_file(
-    const char* mods_directory_path
+    const char* mods_directory_path,
+    int* error_ptr
 ) {
     struct SaveCreationOptions save_creation_options;
 
@@ -94,16 +96,22 @@ int generate_mod_list_file(
         .use_authserver_bans = false,
         .mods_directory_path = NULL,
     };
-    
-    int process_id = fork();
-    if (process_id < 0) {
-        return -1; // Could not fork process
-    }
-    else if (process_id == 0) {
-        start_scenario("/", &start_options, &save_creation_options);
-        exit(0);
-    }
 
+    const char *start_scenario_arguments[30];
+
+    place_start_scenario_arguments(start_scenario_arguments, "/", &start_options, &save_creation_options);
+
+    int local_error_code;
+    int* error_code_ptr = (error_ptr != NULL) ? error_ptr : &local_error_code;
+    
+    pid_t process_id;
+    *error_code_ptr = posix_spawn(
+        &process_id, FACTORIO_SERVER_EXECTUBALE_PATH, NULL,
+        NULL, (char *const*)start_scenario_arguments, environ
+    );
+    if (*error_code_ptr != 0) return -1;
+
+    
     int status;
     waitpid(process_id, &status, 0);
     return 0;

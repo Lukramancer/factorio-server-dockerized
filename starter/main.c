@@ -79,7 +79,7 @@ int check_and_prepare_mod_list(const char* mods_directory_path) {
         return -1; // Could not access mod list file
     }
     
-    int mod_list_generation_code = generate_mod_list_file(mods_directory_path);
+    int mod_list_generation_code = generate_mod_list_file(mods_directory_path, NULL);
     if (mod_list_generation_code != 0) {
         return -2; // Could not generate mod-list.json
     }
