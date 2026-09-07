@@ -3,10 +3,15 @@
 
 #include "jq.h"
 #include "../factorio.h"
+
+#define _GNU_SOURCE
+
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <spawn.h>
+
 
 const char update_mods_list_from_env_jq_expression[] = {
 #embed "update-mods-list-from-env.jq"
@@ -21,36 +26,48 @@ const char dlcs_configuration_json[] = {
 
 int produce_mod_list_from_env(
     const char* base_mod_list_file_path,
-    int destination_file_descriptor
+    int destination_file_descriptor,
+    int* error_ptr
 ) {
-    int process_id = fork();
-    if (process_id < 0) {
-        return -1; // Could not fork process
-    }
-    else if (process_id == 0) {
-        int dup_return_code = dup2(destination_file_descriptor, STDOUT_FILENO);
-        if (dup_return_code < 0) {
-            exit(-1); // Could not duplicate fd
-        }
+    int local_error_code;
+    int* error_code_ptr = (error_ptr != NULL) ? error_ptr : &local_error_code;
 
-        close(destination_file_descriptor);
-        
-        int exec_return_code = execl(JQ_BINARY_PATH,
-            "jq",
-            "--argjson", "dlcs", dlcs_configuration_json,
-            update_mods_list_from_env_jq_expression,
-            base_mod_list_file_path,
-            NULL
-        );
-        
-        if (exec_return_code == -1) exit(-1); // Could not exec jq
-        else exit(0);
-        return 0;
+    posix_spawn_file_actions_t jq_spawn_actions;
+    *error_code_ptr = posix_spawn_file_actions_init(&jq_spawn_actions);
+    if (*error_code_ptr != 0) return -1;
+    
+    *error_code_ptr = posix_spawn_file_actions_adddup2(&jq_spawn_actions,
+        destination_file_descriptor, STDOUT_FILENO
+    );
+    if (*error_code_ptr != 0) {
+        posix_spawn_file_actions_destroy(&jq_spawn_actions);
+        return -1;
+    }
+    
+    const char* jq_arguments[] = {
+        "jq",
+        "--argjson", "dlcs", dlcs_configuration_json,
+        update_mods_list_from_env_jq_expression,
+        base_mod_list_file_path,
+        NULL
+    };
+
+    pid_t jq_process_id;
+    *error_code_ptr = posix_spawn(
+        &jq_process_id, JQ_BINARY_PATH, &jq_spawn_actions,
+        NULL, (char *const*)jq_arguments, environ
+    );
+    if (*error_code_ptr != 0) {
+        posix_spawn_file_actions_destroy(&jq_spawn_actions);
+        return -1;
     }
 
+    posix_spawn_file_actions_destroy(&jq_spawn_actions);
+    
+    
     int status;
-    waitpid(process_id, &status, 0);
-    return status;
+    waitpid(jq_process_id, &status, 0);
+    return WEXITSTATUS(status);
 }
 
 

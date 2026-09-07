@@ -21,7 +21,8 @@ int check_and_prepare_start_options(const struct StartOptions* start_options_ptr
     if (server_settings_file_path_code != 0 && errno == ENOENT) {
         int server_setting_infer_code = produce_server_settings_from_env(
             FACTORIO_SERVER_EXAMPLE_SETTINGS_FILE_PATH,
-            start_options_ptr->server_settings_file_path
+            start_options_ptr->server_settings_file_path,
+            NULL
         );
         if (server_setting_infer_code < 0) {
             return -1; // Could not copy example file
@@ -90,7 +91,7 @@ int check_and_prepare_mod_list(const char* mods_directory_path) {
         return -3; // Could not make or open temp file path, check errno
     }
 
-    int mod_list_ineference_code = produce_mod_list_from_env(mod_list_file_path, mod_list_tmp_file_path_descriptor);
+    int mod_list_ineference_code = produce_mod_list_from_env(mod_list_file_path, mod_list_tmp_file_path_descriptor, NULL);
     if (mod_list_ineference_code != 0) {
         return -4; // Could not infer temporary mod-list.json
     }

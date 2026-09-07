@@ -1,10 +1,12 @@
 #include "../configuration.h"
 
 
+#define _GNU_SOURCE
+
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <spawn.h>
 
 #include "jq.h"
 
@@ -17,39 +19,46 @@ const char update_server_setting_from_env_jq_expression[] = {
 
 int produce_server_settings_from_env(
     const char* base_server_settings_file_path,
-    const char* destination_file_path
+    const char* destination_file_path,
+    int* error_ptr
 ) {
-    // NOTE: probably should be remade with posix_spawn
-    int fork_return_code = fork();
-    if (fork_return_code < 0) {
-        return -1; // Could not fork process
-    }
-    else if (fork_return_code == 0) {
-        int destination_file_descriptor = open(destination_file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (destination_file_descriptor < 0) {
-            exit(-1); // Could not open destination file
-        }
-        
-        int dup_return_code = dup2(destination_file_descriptor, STDOUT_FILENO);
-        if (dup_return_code < 0) {
-            exit(-1); // Could not duplicate fd
-        }
+    int local_error_code;
+    int* error_code_ptr = (error_ptr != NULL) ? error_ptr : &local_error_code;
 
-        close(destination_file_descriptor);
-        
-        int exec_return_code = execl(
-            JQ_BINARY_PATH,
-            "jq",
-            update_server_setting_from_env_jq_expression,
-            base_server_settings_file_path,
-            NULL
-        );
-        
-        if (exec_return_code == -1) exit(-1); // Could not exec jq
-        else exit(0);
+    posix_spawn_file_actions_t jq_spawn_actions;
+    *error_code_ptr = posix_spawn_file_actions_init(&jq_spawn_actions);
+    if (*error_code_ptr != 0) return -1;
+    
+    *error_code_ptr = posix_spawn_file_actions_addopen(&jq_spawn_actions,
+        STDOUT_FILENO, destination_file_path,
+        O_WRONLY | O_CREAT | O_TRUNC, 0644
+    );
+    if (*error_code_ptr != 0) {
+        posix_spawn_file_actions_destroy(&jq_spawn_actions);
+        return -1;
     }
     
+    const char* jq_arguments[] = {
+        "jq",
+        update_server_setting_from_env_jq_expression,
+        base_server_settings_file_path,
+        NULL
+    };
+
+    pid_t jq_process_id;
+    *error_code_ptr = posix_spawn(
+        &jq_process_id, JQ_BINARY_PATH, &jq_spawn_actions,
+        NULL, (char *const*)jq_arguments, environ
+    );
+    if (*error_code_ptr != 0) {
+        posix_spawn_file_actions_destroy(&jq_spawn_actions);
+        return -1;
+    }
+
+    posix_spawn_file_actions_destroy(&jq_spawn_actions);
+    
+    
     int status;
-    waitpid(fork_return_code, &status, 0);
+    waitpid(jq_process_id, &status, 0);
     return WEXITSTATUS(status);
 }
