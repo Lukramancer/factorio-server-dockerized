@@ -1,8 +1,13 @@
 #include "factorio.h"
 
 
+#define _GNU_SOURCE
+
+#include <unistd.h>
+#include <sched.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <spawn.h>
 
 #include "paths.h"
 #include "arguments.h"
@@ -21,16 +26,20 @@ int create_save_in_fork(
     place_save_creation_options(save_creation_options_ptr, &arguments_position_ptr);
     terminate_arguments(&arguments_position_ptr);
     
-    int process_id = fork();
-    
-    if (process_id == 0) {
-        return execv(FACTORIO_SERVER_EXECTUBALE_PATH, (char* const*)save_creation_arguments);
-    }
+    int process_id;
+    int posix_spawn_return_code = posix_spawn(
+        &process_id,
+        FACTORIO_SERVER_EXECTUBALE_PATH,
+        NULL, NULL,
+        (char* const*)save_creation_arguments,
+        environ
+    );
+    if (posix_spawn_return_code != 0) return -1; // Could not posix_spawn
 
     int save_creation_child_process_exit_code;
     waitpid(process_id, &save_creation_child_process_exit_code, 0);
 
-    return save_creation_child_process_exit_code;
+    return WEXITSTATUS(save_creation_child_process_exit_code);
 }
 
 
