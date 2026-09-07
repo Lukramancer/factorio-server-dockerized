@@ -61,6 +61,21 @@ void start_latest(const struct StartOptions* start_options_ptr) {
     execv(FACTORIO_SERVER_EXECTUBALE_PATH, (char* const*)start_creation_arguments);
 }
 
+
+void place_start_scenario_arguments(
+    const char** arguments,
+    const char* scenario,
+    const struct StartOptions* start_options_ptr,
+    const struct SaveCreationOptions* save_creation_options_ptr
+) {
+    const char **arguments_position_ptr = arguments;
+    place_argument("factorio", &arguments_position_ptr);
+    place_argument_with_value("--start-server-load-scenario", scenario, &arguments_position_ptr);
+    place_start_options(start_options_ptr, &arguments_position_ptr);
+    place_save_creation_options(save_creation_options_ptr, &arguments_position_ptr);
+    terminate_arguments(&arguments_position_ptr);
+}
+
 void start_scenario(
     const char* scenario,
     const struct StartOptions* start_options_ptr,
@@ -68,12 +83,11 @@ void start_scenario(
 ) {
     const char *start_creation_arguments[30];
 
-    const char **arguments_position_ptr = start_creation_arguments;
-    place_argument("factorio", &arguments_position_ptr);
-    place_argument_with_value("--start-server-load-scenario", scenario, &arguments_position_ptr);
-    place_start_options(start_options_ptr, &arguments_position_ptr);
-    place_save_creation_options(save_creation_options_ptr, &arguments_position_ptr);
-    terminate_arguments(&arguments_position_ptr);
+    place_start_scenario_arguments(
+        start_creation_arguments,
+        scenario,
+        start_options_ptr, save_creation_options_ptr
+    );
     
     execv(FACTORIO_SERVER_EXECTUBALE_PATH, (char* const*)start_creation_arguments);
 }
