@@ -3,7 +3,6 @@
 
 #include "jq.h"
 #include "../factorio.h"
-#include "../arguments.h"
 
 #define _GNU_SOURCE
 
