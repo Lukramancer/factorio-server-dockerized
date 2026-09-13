@@ -27,6 +27,17 @@ void place_start_options(const struct StartOptions* start_options_ptr, const cha
     place_optional_argument_with_value("--server-adminlist", start_options_ptr->server_adminlist_file_path, options_ptr);
     place_optional_argument_with_value("--server-id", start_options_ptr->server_id_file_path, options_ptr);
     place_optional_argument_with_value("--mod-directory", start_options_ptr->mods_directory_path, options_ptr);
+    place_rcon_options(&start_options_ptr->rcon_options, options_ptr);
+}
+
+
+void place_rcon_options(
+    const struct RconOptions* rcon_options_ptr,
+    const char*** options_ptr
+) {
+    place_optional_argument_with_value("--rcon-port", rcon_options_ptr->port, options_ptr);
+    place_optional_argument_with_value("--rcon-bind", rcon_options_ptr->bind, options_ptr);
+    place_optional_argument_with_value("--rcon-password", rcon_options_ptr->password, options_ptr);
 }
 
 
@@ -71,4 +82,11 @@ void init_start_options(
     }
     
     destination_ptr->mods_directory_path = paths_configuration_ptr->mods_directory_path;
+}
+
+
+void init_rcon_options(struct RconOptions* destination_ptr) {
+    destination_ptr->port = getenv("RCON_PORT");
+    destination_ptr->bind = getenv("RCON_BIND_ADDRESS");
+    destination_ptr->password = getenv("RCON_PASSWORD");    
 }

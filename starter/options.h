@@ -20,6 +20,20 @@ void init_save_creation_options(
 );
 
 
+struct RconOptions {
+    const char* port;
+    const char* bind;
+    const char* password;
+};
+
+void place_rcon_options(
+    const struct RconOptions* rcon_options_ptr,
+    const char*** options_ptr
+);
+
+void init_rcon_options(struct RconOptions* destination_ptr);
+
+
 struct StartOptions {
     const char* server_settings_file_path;
     const char* map_settings_file_path;
@@ -30,6 +44,7 @@ struct StartOptions {
     const char* server_adminlist_file_path;
     const char* server_id_file_path;
     const char* mods_directory_path;
+    struct RconOptions rcon_options;
 };
 
 void place_start_options(const struct StartOptions* start_options_ptr, const char*** options_ptr);
