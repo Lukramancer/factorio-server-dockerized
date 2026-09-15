@@ -2,8 +2,6 @@ FROM debian:13-slim AS factorio-download
 
 ARG FACTORIO_VERSION=stable
 
-RUN apt-get update && apt-get install -y curl xz-utils
-
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
