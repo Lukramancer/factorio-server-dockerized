@@ -43,7 +43,7 @@ WORKDIR /opt/factorio
 VOLUME [ \
     "/opt/factorio/configs", \
     "/opt/factorio/saves", \
-    "/opt/factorio/mods" \
+    "/opt/factorio/mods"
 ]
 
 ENTRYPOINT ["/opt/factorio/start"]
