@@ -186,11 +186,11 @@ Server settings can configured via `server-settings.json` file within `configs` 
 
 Any setting specified in `server-settings.example.json` with type of string, number, bool, or list of strings can be provided via environment variable. The environment variable should be named as property within `server-settings.example.json` file in [SCREAMING_SNAKE_CASE](https://en.wikipedia.org/wiki/Snake_case) and with prefix `SERVER_`. For instance: setting `autosave_slots` is configured by `SERVER_AUTOSAVE_SLOTS` environment variable. If a setting is nested within an object (such as `visibility`), then the object name should be included in the variable name.
 
-To set a list of strings they should be placed in single environment variable named after the setting in json file and be delimeterd by `,`.
+To set a list of strings they should be placed in single environment variable named after the setting in json file and be **delimeterd by `,`**.
 
 Numbers are being automatically converted from strings, when corresposnding setting in `server-settings.example.json` is numeric.
 
-Booleans are being automatically converted from strings, when corresposnding setting in `server-settings.example.json` is boolean. Only exactly `true` and `false` values are allowed in environment variables.
+Booleans are being automatically converted from strings, when corresposnding setting in `server-settings.example.json` is boolean. **Only exactly `true` and `false` values are allowed in environment variables**.
 
 For example, to set the following settings:
 ```json
