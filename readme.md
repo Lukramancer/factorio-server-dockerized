@@ -178,3 +178,39 @@ DISABLE_SPACE_AGE_DLC=false
 By default all mods discovered in `mods` directory are enabled. They can be manually reordered or disabled via `mod-list.json` file in the directory. They can be disabled also by environment variables: `DISABLE_<MOD_NAME>_MOD=true`. For instance, to disable `test-mod-name` mod provide `DISABLE_TEST_MOD_NAME_MOD=true` environment variable.
 
 Mods settings are stored in `mod-settings.dat` file also at `mods` directory. The only option to edit these settings is to put pre-configured file (from full game) in the directory.
+
+
+#### Server settings
+
+Server settings can configured via `server-settings.json` file within `configs` directory. It can be either provided pre-configured, either configured using environment variables.
+
+Any setting specified in `server-settings.example.json` with type of string, number, bool, or list of strings can be provided via environment variable. The environment variable should be named as property within `server-settings.example.json` file in [SCREAMING_SNAKE_CASE](https://en.wikipedia.org/wiki/Snake_case) and with prefix `SERVER_`. For instance: setting `autosave_slots` is configured by `SERVER_AUTOSAVE_SLOTS` environment variable. If a setting is nested within an object (such as `visibility`), then the object name should be included in the variable name.
+
+To set a list of strings they should be placed in single environment variable named after the setting in json file and be delimeterd by `,`.
+
+Numbers are being automatically converted from strings, when corresposnding setting in `server-settings.example.json` is numeric.
+
+Booleans are being automatically converted from strings, when corresposnding setting in `server-settings.example.json` is boolean. Only exactly `true` and `false` values are allowed in environment variables.
+
+For example, to set the following settings:
+```json
+{
+  "name": "Name of the game as it will appear in the game listing",
+  "description": "Description of the game that will appear in the listing",
+  "tags": [ "game", "tags" ],
+  "max_players": 12,
+  "visibility": {
+    "public": false,
+    "lan": true
+  }
+}
+```
+following evironment variables should be provided:
+```bash
+SERVER_NAME="Name of the game as it will appear in the game listing"
+SERVER_DESCRIPTION="Description of the game that will appear in the listing"
+SERVER_TAGS="game,tags"
+SERVER_MAX_PLAYERS=12
+SERVER_VISIBILITY_PUBLIC=false
+SERVER_VISIBILITY_LAN=true
+```
