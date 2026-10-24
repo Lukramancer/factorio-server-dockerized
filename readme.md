@@ -176,3 +176,5 @@ DISABLE_SPACE_AGE_DLC=false
 #### Mods
 
 By default all mods discovered in `mods` directory are enabled. They can be manually reordered or disabled via `mod-list.json` file in the directory. They can be disabled also by environment variables: `DISABLE_<MOD_NAME>_MOD=true`. For instance, to disable `test-mod-name` mod provide `DISABLE_TEST_MOD_NAME_MOD=true` environment variable.
+
+Mods settings are stored in `mod-settings.dat` file also at `mods` directory. The only option to edit these settings is to put pre-configured file (from full game) in the directory.
