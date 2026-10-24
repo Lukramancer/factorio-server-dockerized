@@ -182,7 +182,7 @@ Mods settings are stored in `mod-settings.dat` file also at `mods` directory. Th
 
 #### Server settings
 
-Server settings can configured via `server-settings.json` file within `configs` directory. It can be either provided pre-configured, either configured using environment variables.
+Server settings can configured via `server-settings.json` file within `configs` directory. It can be either provided pre-configured or configured using environment variables. **Server settings are infered from evironment variables only if server settings files is missing**. So, to force regeneration, the file should be deleted.
 
 Any setting specified in `server-settings.example.json` with type of string, number, bool, or list of strings can be provided via environment variable. The environment variable should be named as property within `server-settings.example.json` file in [SCREAMING_SNAKE_CASE](https://en.wikipedia.org/wiki/Snake_case) and with prefix `SERVER_`. For instance: setting `autosave_slots` is configured by `SERVER_AUTOSAVE_SLOTS` environment variable. If a setting is nested within an object (such as `visibility`), then the object name should be included in the variable name.
 
